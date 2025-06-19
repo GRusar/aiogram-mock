@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.base import BaseSession
-from aiogram.types import Chat, User
+from aiogram.types import Chat, User, ChatMemberMember
 
 from aiogram_mock.mocked_session import MockedSession
 from aiogram_mock.tg_control import PrivateChatTgControl, TgControl
@@ -45,6 +45,8 @@ def private_chat_tg_control(
     )
 
     tg_state = tg_state_factory([chat])
+    tg_state.set_chat_member(chat.id, ChatMemberMember(user=target_user))
+    tg_state.set_chat_member(chat.id, ChatMemberMember(user=bot_user))
     session = mocked_session_factory(tg_state, bot_user)
     with patch.object(bot, 'session', session):
         yield PrivateChatTgControl(

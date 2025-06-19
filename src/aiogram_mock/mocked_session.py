@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, AsyncGenerator, List, Mapping, Optional, Sequence, Type, Union
+from typing import Any, AsyncGenerator, Dict, List, Mapping, Optional, Sequence, Type, Union
 
 from aiogram import Bot
 from aiogram.client.session.base import BaseSession
@@ -15,16 +15,10 @@ from aiogram.methods import (
     TelegramMethod,
 )
 from aiogram.methods.base import TelegramType
-from aiogram.types import (
-    InlineKeyboardMarkup,
-    Message,
-    ReplyKeyboardRemove,
-    User,
-    ChatMemberUnion,
-)
+from aiogram.types import InlineKeyboardMarkup, Message, ReplyKeyboardRemove, User
 from aiogram.types.base import UNSET
 
-from aiogram_mock.tg_state import TgState
+from aiogram_mock.tg_state import ChatMemberType, TgState
 
 SendMessageVariant = Union[SendMessage, SendPhoto]
 
@@ -111,7 +105,7 @@ class MockedSession(BaseSession):
         bot: Bot,
         method: GetChatMember,
         timeout: Optional[int] = UNSET,
-    ) -> ChatMemberUnion:
+    ) -> ChatMemberType:
         return self._tg_state.get_chat_member(int(method.chat_id), int(method.user_id))
 
     async def _mock_edit_message_text(
@@ -196,9 +190,10 @@ class MockedSession(BaseSession):
     def stream_content(
         self,
         url: str,
-        timeout: int,
-        chunk_size: int,
-        raise_for_status: bool,
+        headers: Optional[Dict[str, Any]] = None,
+        timeout: int = 30,
+        chunk_size: int = 1024,
+        raise_for_status: bool = True,
     ) -> AsyncGenerator[bytes, None]:
         raise NotImplementedError
 

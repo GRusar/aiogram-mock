@@ -2,23 +2,23 @@ import itertools
 from datetime import datetime
 from typing import Callable, Optional, Sequence, Union
 
-from aiogram import Bot, Dispatcher, MagicFilter
+from aiogram import Bot, Dispatcher
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.base import DEFAULT_DESTINY, BaseStorage, StorageKey
 from aiogram.methods import AnswerCallbackQuery
 from aiogram.types import (
     CallbackQuery,
     Chat,
+    ChatMemberUpdated,
     Contact,
     InlineKeyboardButton,
     Message,
     Update,
     User,
-    ChatMemberUpdated,
-    ChatMemberUnion,
 )
+from aiogram.utils.magic_filter import MagicFilter
 
-from aiogram_mock.tg_state import TgState, UserState
+from aiogram_mock.tg_state import ChatMemberType, TgState, UserState
 
 
 class TgControl:
@@ -41,7 +41,7 @@ class TgControl:
     def user_state(self, *, chat_id: int, user_id: int) -> UserState:
         return self._tg_state.get_user_state(chat_id=chat_id, user_id=user_id)
 
-    def chat_member(self, *, chat_id: int, user_id: int) -> ChatMemberUnion:
+    def chat_member(self, *, chat_id: int, user_id: int) -> ChatMemberType:
         return self._tg_state.get_chat_member(chat_id, user_id)
 
     async def _send_message(self, message: Message) -> None:
@@ -117,8 +117,8 @@ class TgControl:
         *,
         chat: Chat,
         from_user: User,
-        old_member: ChatMemberUnion,
-        new_member: ChatMemberUnion,
+        old_member: ChatMemberType,
+        new_member: ChatMemberType,
         my: bool = False,
     ) -> None:
         self._tg_state.set_chat_member(chat.id, new_member)
@@ -133,7 +133,7 @@ class TgControl:
             self._bot,
             Update(
                 update_id=self._tg_state.increment_update_id(),
-                **({"my_chat_member": update} if my else {"chat_member": update}),
+                **({"my_chat_member": update} if my else {"chat_member": update}),  # type: ignore
             ),
         )
 
@@ -159,7 +159,6 @@ class PrivateChatTgControl:
 
     def state(self, destiny: str = DEFAULT_DESTINY) -> FSMContext:
         return FSMContext(
-            bot=self.bot,
             storage=self._tg_control.storage,
             key=StorageKey(
                 bot_id=self.bot.id,
@@ -182,8 +181,10 @@ class PrivateChatTgControl:
         return self._tg_control.user_state(chat_id=self._chat.id, user_id=self._user.id)
 
     @property
-    def member(self) -> ChatMemberUnion:
-        return self._tg_control.chat_member(chat_id=self._chat.id, user_id=self._user.id)
+    def member(self) -> ChatMemberType:
+        return self._tg_control.chat_member(
+            chat_id=self._chat.id, user_id=self._user.id
+        )
 
     @property
     def bot(self) -> Bot:
@@ -224,10 +225,10 @@ class PrivateChatTgControl:
 
     async def update_member(
         self,
-        new_member: ChatMemberUnion,
+        new_member: ChatMemberType,
         *,
         from_user: Optional[User] = None,
-        old_member: Optional[ChatMemberUnion] = None,
+        old_member: Optional[ChatMemberType] = None,
         my: bool = False,
     ) -> None:
         await self._tg_control.update_chat_member(

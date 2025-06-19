@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.base import BaseSession
-from aiogram.types import Chat, User, ChatMemberMember
+from aiogram.types import Chat, ChatMemberMember, User
 
 from aiogram_mock.mocked_session import MockedSession
 from aiogram_mock.tg_control import PrivateChatTgControl, TgControl

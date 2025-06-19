@@ -12,10 +12,11 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     InputFile,
     Message,
+    PhotoSize,
     ReplyKeyboardMarkup,
-    PhotoSize
 )
 from aiogram.types.base import UNSET
+
 
 @dataclass(frozen=True)
 class UserState:

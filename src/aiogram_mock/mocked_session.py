@@ -5,14 +5,13 @@ from aiogram import Bot
 from aiogram.client.session.base import BaseSession
 from aiogram.methods import (
     AnswerCallbackQuery,
+    EditMessageCaption,
     EditMessageReplyMarkup,
     EditMessageText,
-    EditMessageCaption,
     SendMessage,
     SendPhoto,
     SetChatMenuButton,
     TelegramMethod,
-
 )
 from aiogram.methods.base import TelegramType
 from aiogram.types import InlineKeyboardMarkup, Message, ReplyKeyboardRemove, User

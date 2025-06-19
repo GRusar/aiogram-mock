@@ -1,12 +1,24 @@
 import itertools
 from collections import defaultdict
 from dataclasses import dataclass, replace
-from typing import DefaultDict, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import (
+    DefaultDict,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 from uuid import uuid4
 
 from aiogram.methods import AnswerCallbackQuery
 from aiogram.types import (
     Chat,
+    ChatMemberMember,
+    ChatMemberUnion,
     Document,
     ForceReply,
     InlineKeyboardMarkup,
@@ -32,6 +44,8 @@ class TgState:
         self._last_callback_query_id: int = 0
         self._answers: Dict[str, AnswerCallbackQuery] = {}
 
+        self._members: Dict[int, Dict[int, ChatMemberUnion]] = {chat.id: {} for chat in chats}
+
         self._chat_user_state: Dict[int, UserState] = {chat.id: UserState() for chat in chats}
         self._selective_user_state: Dict[int, Dict[int, UserState]] = {}
 
@@ -53,6 +67,7 @@ class TgState:
         self._chats[chat.id] = chat
         self._histories[chat.id] = list(history)
         self._chat_user_state[chat.id] = UserState()
+        self._members[chat.id] = {}
 
     def next_message_id(self, chat_id: int) -> int:
         return len(self._histories[chat_id])
@@ -103,6 +118,12 @@ class TgState:
 
     def get_answer_callback_query(self, callback_query_id: str) -> AnswerCallbackQuery:
         return self._answers[callback_query_id]
+
+    def set_chat_member(self, chat_id: int, member: ChatMemberUnion) -> None:
+        self._members[chat_id][member.user.id] = member
+
+    def get_chat_member(self, chat_id: int, user_id: int) -> ChatMemberUnion:
+        return self._members[chat_id][user_id]
 
     def get_user_state(self, *, chat_id: int, user_id: int) -> UserState:
         try:

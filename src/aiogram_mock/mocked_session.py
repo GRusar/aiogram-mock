@@ -8,13 +8,20 @@ from aiogram.methods import (
     EditMessageCaption,
     EditMessageReplyMarkup,
     EditMessageText,
+    GetChatMember,
     SendMessage,
     SendPhoto,
     SetChatMenuButton,
     TelegramMethod,
 )
 from aiogram.methods.base import TelegramType
-from aiogram.types import InlineKeyboardMarkup, Message, ReplyKeyboardRemove, User
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    Message,
+    ReplyKeyboardRemove,
+    User,
+    ChatMemberUnion,
+)
 from aiogram.types.base import UNSET
 
 from aiogram_mock.tg_state import TgState
@@ -99,6 +106,14 @@ class MockedSession(BaseSession):
     ) -> bool:
         return True
 
+    async def _mock_get_chat_member(
+        self,
+        bot: Bot,
+        method: GetChatMember,
+        timeout: Optional[int] = UNSET,
+    ) -> ChatMemberUnion:
+        return self._tg_state.get_chat_member(int(method.chat_id), int(method.user_id))
+
     async def _mock_edit_message_text(
         self,
         bot: Bot,
@@ -161,6 +176,7 @@ class MockedSession(BaseSession):
         EditMessageText: _mock_edit_message_text.__name__,
         EditMessageCaption: _mock_edit_message_caption.__name__,
         EditMessageReplyMarkup: _mock_edit_message_reply_markup.__name__,
+        GetChatMember: _mock_get_chat_member.__name__,
     }
 
     async def make_request(

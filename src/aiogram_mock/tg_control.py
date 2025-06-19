@@ -6,7 +6,17 @@ from aiogram import Bot, Dispatcher, MagicFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.base import DEFAULT_DESTINY, BaseStorage, StorageKey
 from aiogram.methods import AnswerCallbackQuery
-from aiogram.types import CallbackQuery, Chat, Contact, InlineKeyboardButton, Message, Update, User
+from aiogram.types import (
+    CallbackQuery,
+    Chat,
+    Contact,
+    InlineKeyboardButton,
+    Message,
+    Update,
+    User,
+    ChatMemberUpdated,
+    ChatMemberUnion,
+)
 
 from aiogram_mock.tg_state import TgState, UserState
 
@@ -30,6 +40,9 @@ class TgControl:
 
     def user_state(self, *, chat_id: int, user_id: int) -> UserState:
         return self._tg_state.get_user_state(chat_id=chat_id, user_id=user_id)
+
+    def chat_member(self, *, chat_id: int, user_id: int) -> ChatMemberUnion:
+        return self._tg_state.get_chat_member(chat_id, user_id)
 
     async def _send_message(self, message: Message) -> None:
         await self._dispatcher.feed_update(
@@ -99,6 +112,31 @@ class TgControl:
         )
         return self._tg_state.get_answer_callback_query(callback_query_id)
 
+    async def update_chat_member(
+        self,
+        *,
+        chat: Chat,
+        from_user: User,
+        old_member: ChatMemberUnion,
+        new_member: ChatMemberUnion,
+        my: bool = False,
+    ) -> None:
+        self._tg_state.set_chat_member(chat.id, new_member)
+        update = ChatMemberUpdated(
+            chat=chat,
+            from_user=from_user,
+            date=datetime.utcnow(),
+            old_chat_member=old_member,
+            new_chat_member=new_member,
+        )
+        await self._dispatcher.feed_update(
+            self._bot,
+            Update(
+                update_id=self._tg_state.increment_update_id(),
+                **({"my_chat_member": update} if my else {"chat_member": update}),
+            ),
+        )
+
     @property
     def bot(self) -> Bot:
         return self._bot
@@ -144,6 +182,10 @@ class PrivateChatTgControl:
         return self._tg_control.user_state(chat_id=self._chat.id, user_id=self._user.id)
 
     @property
+    def member(self) -> ChatMemberUnion:
+        return self._tg_control.chat_member(chat_id=self._chat.id, user_id=self._user.id)
+
+    @property
     def bot(self) -> Bot:
         return self._tg_control.bot
 
@@ -179,3 +221,19 @@ class PrivateChatTgControl:
         if message is None:
             message = self.last_message
         return await self._tg_control.click(selector, message, self._user)
+
+    async def update_member(
+        self,
+        new_member: ChatMemberUnion,
+        *,
+        from_user: Optional[User] = None,
+        old_member: Optional[ChatMemberUnion] = None,
+        my: bool = False,
+    ) -> None:
+        await self._tg_control.update_chat_member(
+            chat=self._chat,
+            from_user=from_user or self._user,
+            old_member=old_member or self.member,
+            new_member=new_member,
+            my=my,
+        )

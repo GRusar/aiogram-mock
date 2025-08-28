@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any, AsyncGenerator, Dict, List, Mapping, Optional, Sequence, Type, Union
 
 from aiogram import Bot
@@ -59,7 +59,7 @@ class MockedSession(BaseSession):
                 message_id=self._tg_state.next_message_id(chat_id),
                 text=method.text,
                 chat=self._tg_state.chats[chat_id],
-                date=datetime.utcnow(),
+                date=datetime.now(UTC),
                 message_thread_id=method.message_thread_id,
                 from_user=self._bot_user,
                 reply_to_message=self._process_reply(chat_id, method),
@@ -74,7 +74,7 @@ class MockedSession(BaseSession):
                 message_id=self._tg_state.next_message_id(chat_id),
                 caption=method.caption,
                 chat=self._tg_state.chats[chat_id],
-                date=datetime.utcnow(),
+                date=datetime.now(UTC),
                 message_thread_id=method.message_thread_id,
                 from_user=self._bot_user,
                 reply_to_message=self._process_reply(chat_id, method),

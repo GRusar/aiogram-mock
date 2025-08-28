@@ -1,5 +1,5 @@
 import itertools
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Callable, Optional, Sequence, Union
 
 from aiogram import Bot, Dispatcher
@@ -57,7 +57,7 @@ class TgControl:
         await self._send_message(
             Message(
                 message_id=self._tg_state.next_message_id(chat.id),
-                date=datetime.utcnow(),
+                date=datetime.now(UTC),
                 from_user=from_user,
                 chat=chat,
                 text=text,
@@ -68,7 +68,7 @@ class TgControl:
         await self._send_message(
             Message(
                 message_id=self._tg_state.next_message_id(chat.id),
-                date=datetime.utcnow(),
+                date=datetime.now(UTC),
                 from_user=from_user,
                 chat=chat,
                 contact=contact,
@@ -125,7 +125,7 @@ class TgControl:
         update = ChatMemberUpdated(
             chat=chat,
             from_user=from_user,
-            date=datetime.utcnow(),
+            date=datetime.now(UTC),
             old_chat_member=old_member,
             new_chat_member=new_member,
         )
